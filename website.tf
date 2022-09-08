@@ -3,6 +3,12 @@ provider "aws" {
   profile = "hiqdemo"
 }
 
+provider "aws" {
+  alias   = "certificate_region"
+  region  = "us-east-1"
+  profile = "hiqdemo"
+}
+
 terraform {
   cloud {
     organization = "hiqdemo"
@@ -14,7 +20,13 @@ terraform {
 }
 
 locals {
-  s3_bucket = "hiq-workshop"
+  s3_bucket   = "hiq-workshop"
+  domain_name = "hiqdemo.com"
+}
+
+data "aws_route53_zone" "main" {
+  name         = "${local.domain_name}."
+  private_zone = false
 }
 
 resource "aws_s3_bucket" "s3_bucket" {

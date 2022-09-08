@@ -22,6 +22,8 @@ terraform {
 locals {
   s3_bucket   = "hiq-workshop"
   domain_name = "hiqdemo.com"
+  index_page  = "index.html"
+  error_page  = "/404.html"
 }
 
 data "aws_route53_zone" "main" {

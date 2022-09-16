@@ -7,6 +7,7 @@
   - [GitHub Role Policy](#github-role-policy)
   - [S3 Access Policy](#s3-access-policy)
   - [Add policies to the role](#add-policies-to-the-role)
+- [Create GitHub module](#create-github-module)
 
 
 #### This workshop will provide a production-ready demo of setting up static website hosting using Terraform on AWS using S3, CloudFront, Route 53, etc. It will show use cases of Terraform, syntax, and best practices for managing infrastructure as code.
@@ -243,5 +244,36 @@ resource "aws_iam_role_policy_attachment" "repo_access" {
 resource "aws_iam_policy" "repo_policy" {
   name   = "github-${local.github_repo}"
   policy = data.aws_iam_policy_document.s3_rw.json
+}
+```
+
+## Create GitHub module
+
+```terraform
+variable "repo_name" {
+  type = string
+}
+
+variable "repo_policy" {
+  type = string
+}
+
+variable "repo_prefix" {
+  type    = string
+  default = "repo:alexsergeyev"
+}
+
+output "role_arn" {
+  value = aws_iam_role.github.arn
+}
+```
+
+
+
+```terraform
+module "github-demo" {
+  source      = "./modules/github"
+  repo_name   = local.github_repo
+  repo_policy = data.aws_iam_policy_document.s3_rw.json
 }
 ```

@@ -31,6 +31,8 @@ data "aws_route53_zone" "main" {
   private_zone = false
 }
 
+data "aws_caller_identity" "current" {}
+
 resource "aws_s3_bucket" "s3_bucket" {
   bucket        = local.s3_bucket
   force_destroy = true

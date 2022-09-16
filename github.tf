@@ -37,3 +37,38 @@ data "aws_iam_policy_document" "s3_rw" {
     resources = ["${aws_s3_bucket.s3_bucket.arn}/*"]
   }
 }
+
+data "aws_ssm_parameter" "github_token" {
+  name            = "GITHUB_TOKEN"
+  with_decryption = true
+}
+
+provider "github" {
+  owner = "alexsergeyev"
+  token = data.aws_ssm_parameter.github_token.value
+}
+
+terraform {
+  required_providers {
+    github = {
+      source = "integrations/github"
+    }
+  }
+}
+
+locals {
+  github_secrets = {
+    "AWS_ROLE_ARN" = module.github-demo.role_arn
+    "AWS_REGION"   = "eu-north-1"
+    "AWS_BUCKET"   = aws_s3_bucket.s3_bucket.id
+  }
+}
+
+resource "github_actions_secret" "aws" {
+  for_each        = local.github_secrets
+  repository      = local.github_repo
+  secret_name     = each.key
+  plaintext_value = each.value
+}
+
+

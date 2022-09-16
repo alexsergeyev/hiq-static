@@ -8,6 +8,9 @@
   - [S3 Access Policy](#s3-access-policy)
   - [Add policies to the role](#add-policies-to-the-role)
 - [Create GitHub module](#create-github-module)
+- [Github Actions](#github-actions)
+  - [Setup provider](#setup-provider)
+  - [Create secrets](#create-secrets)
 
 
 #### This workshop will provide a production-ready demo of setting up static website hosting using Terraform on AWS using S3, CloudFront, Route 53, etc. It will show use cases of Terraform, syntax, and best practices for managing infrastructure as code.
@@ -275,5 +278,60 @@ module "github-demo" {
   source      = "./modules/github"
   repo_name   = local.github_repo
   repo_policy = data.aws_iam_policy_document.s3_rw.json
+}
+```
+
+## Github Actions
+
+```yaml
+name: hiqdemo.com
+on: push
+jobs:
+  hugo_deploy:
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Login to AWS"
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Deploy
+        run: |
+          AWS_BUCKET=${{secrets.AWS_BUCKET}} hugo && hugo deploy --target=hiqdemo.com
+```
+
+### Setup provider
+
+```terraform
+data "aws_ssm_parameter" "github_token" {
+  name            = "GITHUB_TOKEN"
+  with_decryption = true
+}
+
+provider "github" {
+  owner = "alexsergeyev"
+  token = data.aws_ssm_parameter.github_token.value
+}
+```
+
+### Create secrets
+
+```terraform
+locals {
+  github_secrets = {
+    "AWS_ROLE_ARN" = module.github-demo.role_arn
+    "AWS_REGION"   = "eu-north-1"
+    "AWS_BUCKET"   = aws_s3_bucket.s3_bucket.id
+  }
+}
+
+resource "github_actions_secret" "aws" {
+  for_each        = local.github_secrets
+  repository      = local.github_repo
+  secret_name     = each.key
+  plaintext_value = each.value
 }
 ```

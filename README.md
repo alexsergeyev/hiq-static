@@ -1,3 +1,5 @@
+- [AWSCLI profile](#awscli-profile)
+- [Terraform Cloud account and token](#terraform-cloud-account-and-token)
 - [Create a Terraform configuration](#create-a-terraform-configuration)
 - [Create an S3 bucket](#create-an-s3-bucket)
 - [Create HTTPS certificate](#create-https-certificate)
@@ -15,11 +17,37 @@
 
 #### This workshop will provide a production-ready demo of setting up static website hosting using Terraform on AWS using S3, CloudFront, Route 53, etc. It will show use cases of Terraform, syntax, and best practices for managing infrastructure as code.
 
+![Alt text](/assets/terraform02.png?raw=true "Schema")
+
+## AWSCLI profile
+
+cat ~/.aws/credentials
+
+```
+[hiqdemo]
+aws_access_key_id = XXXXX
+aws_secret_access_key = XXXXX
+region = eu-north-1
+```
+
+## Terraform Cloud account and token
+
+https://app.terraform.io/public/signup/account
+
+https://learn.hashicorp.com/tutorials/terraform/cloud-login
+
+
 ## Create a Terraform configuration
 
 Configure terraform state store on Terraform Cloud and add backend configuration for AWS provider.
 
 ```terraform
+
+provider "aws" {
+  region  = "eu-north-1"
+  profile = "hiqdemo"    # Same name as in .aws/credentials
+}
+
 terraform {
   cloud {
     organization = "hiqdemo"
@@ -158,6 +186,8 @@ data "aws_iam_policy_document" "cloudfront" {
 ```
 
 ## Enable GitHub OIDC for AWS
+
+![Alt text](/assets/terraform03.png?raw=true "Schema")
 
 Use OpenID Connect within GitHub actions to authenticate with Amazon Web Services.
 
